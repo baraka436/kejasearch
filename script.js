@@ -5,7 +5,7 @@
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const STORAGE = 'nyumba360-data';
   const SESSION = 'nyumba360-session';
-  const ADMIN = { username: 'admin', password: 'adminnyumba360@wadau' };
+  const ADMIN = { username: 'admin', password: 'adminnyumba360@dashboard' };
   const seed = {
     users: [
       { id: 'landlord-james', username: 'james', name: 'James Mwangi', email: 'james@example.com', phone: '+254 700 000 000', password: 'password123', role: 'landlord', verified: true },
