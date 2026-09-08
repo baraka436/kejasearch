@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nyumba360 — Verified houses & offices to rent in Nairobi</title>
+<meta name="description" content="Search verified houses and offices to rent across Nairobi. 360° walkthroughs, direct landlord contact, and tenant reviews.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11L12 3l9 8" stroke="#C99A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="#F1E9D8" stroke-width="2" stroke-linejoin="round"/></svg>
+      Nyumba360
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="listings.html">Find a home</a></li>
+      <li><a href="dashboard.html">Landlord dashboard</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a class="btn btn-outline" href="login.html">Log in</a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <h1>Find a home in Nairobi without the guesswork.</h1>
+        <p class="lead">Walk through verified houses and offices in 360° before you visit. Every listing shows the landlord's direct contact and honest reviews from real tenants.</p>
+
+        <form class="search-panel" data-demo-form data-success-message="Showing demo results below." action="listings.html" method="get">
+          <div class="search-grid">
+            <div class="field" style="margin-bottom:0;">
+              <label for="hero-area">Area</label>
+              <input type="text" id="hero-area" name="area" placeholder="e.g. Kilimani, Ruaka, Westlands">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="hero-type">Type</label>
+              <select id="hero-type" name="type">
+                <option value="any">House or office</option>
+                <option value="house">House</option>
+                <option value="office">Office</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="hero-budget">Max budget (KES/mo)</label>
+              <input type="number" id="hero-budget" name="maxPrice" placeholder="80,000" min="0">
+            </div>
+            <div class="field" style="margin-bottom:0; align-self:end;">
+              <button type="submit" class="btn btn-primary btn-block">Search</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="hero-art" aria-hidden="true">
+        <svg width="380" height="320" viewBox="0 0 380 320" role="img" aria-label="Illustration of a Nairobi street with houses and an apartment block">
+          <rect x="0" y="230" width="380" height="90" fill="#16281E"/>
+          <rect x="20" y="120" width="90" height="110" fill="#2B4B37"/>
+          <rect x="35" y="140" width="20" height="20" fill="#C99A3C"/>
+          <rect x="65" y="140" width="20" height="20" fill="#C99A3C"/>
+          <rect x="35" y="175" width="20" height="20" fill="#F1E9D8"/>
+          <rect x="65" y="175" width="20" height="20" fill="#F1E9D8"/>
+          <rect x="130" y="80" width="120" height="150" fill="#254333"/>
+          <rect x="145" y="100" width="18" height="18" fill="#C99A3C"/>
+          <rect x="175" y="100" width="18" height="18" fill="#F1E9D8"/>
+          <rect x="205" y="100" width="18" height="18" fill="#C99A3C"/>
+          <rect x="145" y="130" width="18" height="18" fill="#F1E9D8"/>
+          <rect x="175" y="130" width="18" height="18" fill="#C99A3C"/>
+          <rect x="205" y="130" width="18" height="18" fill="#F1E9D8"/>
+          <rect x="145" y="160" width="18" height="18" fill="#C99A3C"/>
+          <rect x="175" y="160" width="18" height="18" fill="#F1E9D8"/>
+          <rect x="205" y="160" width="18" height="18" fill="#C99A3C"/>
+          <polygon points="270,120 320,70 370,120" fill="#9C5323"/>
+          <rect x="280" y="120" width="80" height="110" fill="#3A5A44"/>
+          <rect x="300" y="145" width="18" height="24" fill="#F1E9D8"/>
+          <rect x="330" y="145" width="18" height="24" fill="#C99A3C"/>
+          <circle cx="330" cy="45" r="22" fill="#C99A3C"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Why renters and landlords use Nyumba360</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-body">
+            <h3>360° walkthroughs</h3>
+            <p>See every room before you spend a single shilling on transport. Every listing includes a full virtual walkthrough, not just photos.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h3>Talk to the landlord directly</h3>
+            <p>No middlemen fees. Each listing shows the landlord's contact so you can ask questions and arrange a viewing yourself.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h3><span class="badge" aria-hidden="true">✓ Verified</span> landlords</h3>
+            <p>Landlords who've confirmed their ID and property ownership documents carry a verified badge, so you know who you're dealing with.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Popular right now</h2>
+        <a class="btn btn-ghost" href="listings.html">Browse all listings</a>
+      </div>
+      <div class="grid-3">
+
+        <article class="card">
+          <span class="card-tab">For rent · House</span>
+          <div class="card-media" aria-hidden="true"></div>
+          <div class="card-body">
+            <span class="badge" style="width:fit-content;">✓ Verified landlord</span>
+            <h3>2-bedroom apartment, Kilimani</h3>
+            <p class="card-meta">2 bed · 2 bath · Gated compound, borehole water</p>
+            <p class="card-price">KES 65,000 <span style="font-size:.7em; color:#544d3f;">/month</span></p>
+            <div class="card-actions">
+              <a class="btn btn-primary" href="property.html">View in 360°</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-tab">For rent · Office</span>
+          <div class="card-media" aria-hidden="true"></div>
+          <div class="card-body">
+            <span class="badge" style="width:fit-content;">✓ Verified landlord</span>
+            <h3>Open-plan office, Westlands</h3>
+            <p class="card-meta">120 m² · Backup generator · CBD-adjacent</p>
+            <p class="card-price">KES 140,000 <span style="font-size:.7em; color:#544d3f;">/month</span></p>
+            <div class="card-actions">
+              <a class="btn btn-primary" href="property.html">View in 360°</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-tab">For rent · House</span>
+          <div class="card-media" aria-hidden="true"></div>
+          <div class="card-body">
+            <span class="badge badge-outline" style="width:fit-content;">Pending verification</span>
+            <h3>Bedsitter, Ruaka</h3>
+            <p class="card-meta">Studio · Shared parking · Near Two Rivers</p>
+            <p class="card-price">KES 18,000 <span style="font-size:.7em; color:#544d3f;">/month</span></p>
+            <div class="card-actions">
+              <a class="btn btn-primary" href="property.html">View in 360°</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap" style="max-width:760px;">
+      <h2>Are you a landlord?</h2>
+      <p>List your property, upload a 360° walkthrough, and manage enquiries from a single dashboard. Verified landlords are shown first in search results.</p>
+      <a class="btn btn-primary" href="login.html">List your property</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4 style="font-family:var(--font-display); font-size:1.2rem;">Nyumba360</h4>
+        <p style="color:#c9c0a4; max-width:34ch;">Verified houses and offices to rent in Nairobi, with 360° walkthroughs and direct landlord contact.</p>
+        <p style="color:#c9c0a4; font-size:.85rem;">Nyumba360 Ltd · CR/2026/XXXXXX (placeholder)<br>Nairobi, Kenya<br>Email: hello@nyumba360.example · Tel: +254 7XX XXX XXX</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="listings.html">Find a home</a></li>
+          <li><a href="dashboard.html">Landlord dashboard</a></li>
+          <li><a href="contact.html">Contact us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy policy</a></li>
+          <li><a href="terms.html">Terms & conditions</a></li>
+          <li><a href="cookies.html">Cookie policy</a></li>
+          <li><a href="refund.html">Refund policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Trust & safety</h4>
+        <ul>
+          <li><a href="contact.html">Report a listing</a></li>
+          <li><a href="#" data-demo-form>Data request (Art. 26 DPA)</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Nyumba360 Ltd. All rights reserved.</span>
+      <span>Registered with the Office of the Data Protection Commissioner, Kenya (placeholder reg. no.)</span>
+    </div>
+  </div>
+</footer>
+
+<div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+  <div class="cookie-inner">
+    <p>We use essential cookies to run this site, and optional analytics cookies to understand how it's used. Read our <a href="cookies.html">Cookie Policy</a>.</p>
+    <div class="cookie-actions">
+      <button class="btn btn-ghost" style="border-color:var(--sand); color:var(--sand);" id="cookie-reject">Reject non-essential</button>
+      <button class="btn btn-primary" id="cookie-accept">Accept all</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

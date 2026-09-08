@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in or sign up — Nyumba360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<main id="main" class="section">
+  <div class="wrap" style="max-width:520px;">
+
+    <div role="tablist" aria-label="Log in or create account" style="display:flex; gap:.5rem; margin-bottom:1.5rem; border-bottom:1px solid var(--line);">
+      <button role="tab" id="tab-login" aria-controls="panel-login" aria-selected="true" tabindex="0"
+        style="background:none;border:none;padding:.8em 1.2em;font-family:var(--font-display);font-size:1.05rem;font-weight:600;color:var(--forest);border-bottom:3px solid var(--clay);cursor:pointer;">
+        Log in
+      </button>
+      <button role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="false" tabindex="-1"
+        style="background:none;border:none;padding:.8em 1.2em;font-family:var(--font-display);font-size:1.05rem;font-weight:600;color:#544d3f;border-bottom:3px solid transparent;cursor:pointer;">
+        Create account
+      </button>
+    </div>
+
+    <!-- LOGIN -->
+    <section id="panel-login" role="tabpanel" aria-labelledby="tab-login" class="form-card">
+      <h1 style="font-size:1.6rem;">Welcome back</h1>
+      <p class="hint" style="margin-bottom:1.2rem;">Demo only — this form does not send data anywhere.</p>
+      <form id="login-form">
+        <div class="field">
+          <label for="login-identity">Username or email</label>
+          <input type="text" id="login-identity" name="identity" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required minlength="8">
+        </div>
+        <div class="field checkbox-row">
+          <input type="checkbox" id="login-remember" name="remember">
+          <label for="login-remember">Keep me signed in on this device</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Log in</button>
+        <p class="form-status hint" role="status" aria-live="polite"></p>
+        <p class="hint"><a href="contact.html">Forgot your password?</a></p>
+      </form>
+    </section>
+
+    <!-- SIGN UP -->
+    <section id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" class="form-card" hidden>
+      <h1 style="font-size:1.6rem;">Create your account</h1>
+      <p class="hint" style="margin-bottom:1.2rem;">We only ask for what's needed to keep the platform safe and to contact you about your account.</p>
+      <form id="signup-form">
+        <fieldset>
+          <legend>I am signing up as a</legend>
+          <div class="checkbox-row" style="margin-bottom:.5rem;">
+            <input type="radio" id="role-tenant" name="role" value="tenant" checked>
+            <label for="role-tenant">Tenant — looking for a house or office</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="radio" id="role-landlord" name="role" value="landlord">
+            <label for="role-landlord">Landlord — listing a property</label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" name="username" autocomplete="username" pattern="[A-Za-z0-9_.-]{3,30}" required>
+          <p class="hint">Use 3–30 letters, numbers, dots, hyphens or underscores.</p>
+        </div>
+        <div class="field">
+          <label for="signup-name">Full name</label>
+          <input type="text" id="signup-name" name="name" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="signup-email">Email address</label>
+          <input type="email" id="signup-email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="signup-phone">Phone number</label>
+          <input type="tel" id="signup-phone" name="phone" autocomplete="tel" placeholder="+254 7XX XXX XXX" required>
+          <p class="hint">Used only for account security and, if you're a landlord, shown to interested tenants.</p>
+        </div>
+        <div class="field">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" name="password" autocomplete="new-password" required minlength="8">
+        </div>
+
+        <div class="field checkbox-row">
+          <input type="checkbox" id="consent-terms" name="consentTerms" required>
+          <label for="consent-terms">I agree to the <a href="terms.html">Terms & Conditions</a> and confirm I am 18 or older.</label>
+        </div>
+        <div class="field checkbox-row">
+          <input type="checkbox" id="consent-privacy" name="consentPrivacy" required>
+          <label for="consent-privacy">I have read the <a href="privacy.html">Privacy Policy</a> and consent to my data being processed as described, in line with Kenya's Data Protection Act, 2019.</label>
+        </div>
+        <div class="field checkbox-row">
+          <input type="checkbox" id="consent-marketing" name="consentMarketing">
+          <label for="consent-marketing">Send me email updates about new listings (optional — you can opt out any time).</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        <p class="form-status hint" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:none; margin-top:0;">
+      <span>© 2026 Nyumba360 Ltd.</span>
+      <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="cookies.html">Cookies</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+  <div class="cookie-inner">
+    <p>We use essential cookies to run this site, and optional analytics cookies to understand how it's used. Read our <a href="cookies.html">Cookie Policy</a>.</p>
+    <div class="cookie-actions">
+      <button class="btn btn-ghost" style="border-color:var(--sand); color:var(--sand);" id="cookie-reject">Reject non-essential</button>
+      <button class="btn btn-primary" id="cookie-accept">Accept all</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

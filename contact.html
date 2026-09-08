@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact us — Nyumba360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11L12 3l9 8" stroke="#C99A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="#F1E9D8" stroke-width="2" stroke-linejoin="round"/></svg>
+      Nyumba360
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="listings.html">Find a home</a></li>
+      <li><a href="dashboard.html">Landlord dashboard</a></li>
+      <li><a href="contact.html" aria-current="page">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main" class="section">
+  <div class="wrap" style="max-width:900px;">
+    <h1>Get in touch</h1>
+    <p>Questions about a listing, a problem with a landlord, or a data request — we read every message.</p>
+
+    <div class="contact-layout">
+      <form class="form-card" data-demo-form data-success-message="Thanks — we'll reply within 2 working days. (Demo only.)">
+        <div class="field">
+          <label for="c-name">Full name</label>
+          <input type="text" id="c-name" name="name" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="c-email">Email address</label>
+          <input type="email" id="c-email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="c-reason">Reason for contact</label>
+          <select id="c-reason" name="reason" required>
+            <option value="">Choose one</option>
+            <option value="general">General enquiry</option>
+            <option value="report">Report a listing or landlord</option>
+            <option value="data">Data request (access, correction, deletion)</option>
+            <option value="verification">Landlord verification</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="c-message">Message</label>
+          <textarea id="c-message" name="message" required minlength="10"></textarea>
+        </div>
+        <div class="field checkbox-row">
+          <input type="checkbox" id="c-consent" name="consent" required>
+          <label for="c-consent">I agree that Nyumba360 may use these details only to respond to my message, per the <a href="privacy.html">Privacy Policy</a>.</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Send message</button>
+        <p class="form-status hint" role="status" aria-live="polite"></p>
+      </form>
+
+      <div>
+        <h2>Other ways to reach us</h2>
+        <p><strong>Email:</strong> hello@nyumba360.example<br>
+        <strong>Phone:</strong> +254 700 000 000 (Mon–Fri, 8am–5pm EAT)<br>
+        <strong>Office:</strong> Nyumba360 Ltd, Nairobi, Kenya (placeholder address)</p>
+
+        <h3>Report a safety concern</h3>
+        <p>If a landlord has asked for money before a viewing, or a listing looks fraudulent, tell us straight away using the form and we'll suspend the listing while we investigate.</p>
+
+        <h3>Data Protection Officer</h3>
+        <p>For requests under the Data Protection Act, 2019 (access, correction, deletion, or objection to processing), email <strong>dpo@nyumba360.example</strong>.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:none; margin-top:0;">
+      <span>© 2026 Nyumba360 Ltd.</span>
+      <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="cookies.html">Cookies</a> · <a href="refund.html">Refunds</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+  <div class="cookie-inner">
+    <p>We use essential cookies to run this site, and optional analytics cookies to understand how it's used. Read our <a href="cookies.html">Cookie Policy</a>.</p>
+    <div class="cookie-actions">
+      <button class="btn btn-ghost" style="border-color:var(--sand); color:var(--sand);" id="cookie-reject">Reject non-essential</button>
+      <button class="btn btn-primary" id="cookie-accept">Accept all</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
