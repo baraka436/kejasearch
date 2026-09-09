@@ -1,4 +1,4 @@
-# Nyumba360 — Legal & Compliance Checklist
+# KejaSearch — Legal & Compliance Checklist
 
 **Not legal advice.** This flags what's built into the prototype and what needs a Kenyan advocate, real business documents, and your own decisions before launch. I'm not a lawyer and this isn't a substitute for one.
 
@@ -9,7 +9,7 @@
 - "Verified landlord" badge with a stated verification date and an explicit note that verification isn't a guarantee.
 - Reviews require confirming a genuine tenancy; the review workflow and copy explicitly reject unverified/incentivized reviews.
 - Safety notice on the property page warning tenants never to pay a deposit before viewing in person.
-- Refund policy scoped only to platform fees, not rent/deposits (Nyumba360 never touches that money in this design).
+- Refund policy scoped only to platform fees, not rent/deposits (KejaSearch never touches that money in this design).
 - Data-subject rights: "download my data" / "delete my account" buttons on the dashboard, and a named contact for DPA requests.
 - Accessibility: skip link, visible focus outlines, labelled form fields, keyboard-operable tabs (arrow keys) on login/signup, alt text and text alternatives for the 360° viewer and decorative art marked `aria-hidden`, contrast-checked colour palette (all text/background pairs ≥ 4.5:1, large text/buttons ≥ 3:1), `prefers-reduced-motion` respected, semantic tables/headings/landmarks throughout.
 - No third-party analytics or ad scripts are wired in — the site currently calls nothing external except Google Fonts (see below) and placeholder `tel:`/`wa.me` links.

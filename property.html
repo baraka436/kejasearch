@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2-bedroom apartment, Kilimani — Nyumba360</title>
+<title>2-bedroom apartment, Kilimani — KejaSearch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -15,7 +15,7 @@
   <nav class="nav" aria-label="Main">
     <a class="brand" href="index.html">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11L12 3l9 8" stroke="#C99A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="#F1E9D8" stroke-width="2" stroke-linejoin="round"/></svg>
-      Nyumba360
+      KejaSearch
     </a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
@@ -26,51 +26,47 @@
   </nav>
 </header>
 
-<main id="main" class="section">
+<main id="main" class="section" data-property-detail>
   <div class="wrap">
     <p><a href="listings.html">← Back to search results</a></p>
-
-    <div class="property-head">
-      <div>
-        <h1>2-bedroom apartment, Kilimani</h1>
-        <p class="card-meta">Kilimani, Nairobi · 2 bed · 2 bath · 90 m²</p>
-      </div>
-      <p class="card-price" style="font-size:1.8rem;">KES 65,000 <span style="font-size:.55em; color:#544d3f;">/month</span></p>
+    <div id="property-not-available" class="notice-box" hidden>
+      <strong>Listing unavailable</strong>
+      <p>This listing is not available yet. It will appear here after admin approval.</p>
     </div>
 
-    <div class="view360" role="img" aria-label="360 degree virtual walkthrough of the living room, kitchen and both bedrooms, showing gated compound and borehole water tank">
+    <div id="property-detail-content">
+    <div class="property-head">
       <div>
+        <h1 id="property-title">2-bedroom apartment, Kilimani</h1>
+        <p id="property-location" class="card-meta">Kilimani, Nairobi · 2 bed · 2 bath · 90 m²</p>
+      </div>
+      <p id="property-price" class="card-price" style="font-size:1.8rem;">KES 65,000 <span style="font-size:.55em; color:#544d3f;">/month</span></p>
+    </div>
+
+    <div class="view360" role="region" aria-label="360 degree property walkthrough">
+      <video id="property-video" class="property-video" controls preload="metadata" hidden aria-label="Whole-house video walkthrough"></video>
+      <div class="view360-copy">
         <p style="margin-bottom:.5rem; font-weight:600;">360° walkthrough</p>
-        <p class="hint" style="color:#c9c0a4;">Interactive viewer placeholder — embed your 360° tour provider here (e.g. Matterport, Kuula). Always caption or provide a text alternative for screen-reader users.</p>
-        <button class="btn btn-outline" type="button">Start walkthrough</button>
+        <p class="hint" style="color:#c9c0a4;">The landlord's whole-house walkthrough video will appear here after admin approval.</p>
       </div>
     </div>
 
     <div class="prop-layout">
       <div>
         <h2>About this home</h2>
-        <p>A bright 2-bedroom apartment on the third floor of a gated compound in Kilimani, five minutes' walk from Yaya Centre. Borehole water backup, CCTV at the gate, and dedicated parking for one car.</p>
+        <p id="property-description">A bright 2-bedroom apartment on the third floor of a gated compound in Kilimani, five minutes' walk from Yaya Centre. Borehole water backup, CCTV at the gate, and dedicated parking for one car.</p>
         <ul>
-          <li>Bedrooms: 2, both en-suite</li>
-          <li>Kitchen: fitted, gas connection</li>
-          <li>Water: mains + borehole backup</li>
-          <li>Power: mains + standby generator for common areas</li>
-          <li>Parking: 1 allocated bay</li>
+          <li id="property-rooms">Bedrooms: 2, both en-suite</li>
+          <li id="property-bathrooms">Bathrooms: 2</li>
+          <li id="property-kitchen">Kitchen: fitted, gas connection</li>
+          <li id="property-water">Water: mains + borehole backup</li>
+          <li id="property-power">Power: mains + standby generator for common areas</li>
+          <li id="property-parking">Parking: 1 allocated bay</li>
         </ul>
 
         <h2>Tenant reviews</h2>
         <p class="hint">Reviews are from tenants who have confirmed a lease at this property. We remove reviews found to be fake, incentivized, or posted by someone with no verified tenancy.</p>
-
-        <div class="review">
-          <p class="stars" aria-label="5 out of 5 stars">★★★★★</p>
-          <p style="margin:.3em 0;"><strong>Faith W.</strong> — lived here Jan 2025–present</p>
-          <p>Quiet compound and the caretaker responds fast when something needs fixing. Water pressure drops occasionally in the evening.</p>
-        </div>
-        <div class="review">
-          <p class="stars" aria-label="4 out of 5 stars">★★★★☆</p>
-          <p style="margin:.3em 0;"><strong>Brian O.</strong> — lived here Jun 2024–Mar 2025</p>
-          <p>Good value for the area. Parking is tight if you have two cars — worth asking about before you sign.</p>
-        </div>
+        <div id="property-reviews"></div>
 
         <h3 style="margin-top:2rem;">Leave a review</h3>
         <form id="review-form">
@@ -105,17 +101,18 @@
         <div class="landlord-card">
           <span class="badge">✓ Verified landlord</span>
           <h3 style="margin-top:.6rem;">Contact the landlord</h3>
-          <p class="card-meta">James Mwangi</p>
-          <p><a class="btn btn-primary btn-block" href="tel:+254700000000">Call +254 700 000 000</a></p>
-          <p><a class="btn btn-ghost btn-block" href="https://wa.me/254700000000">Message on WhatsApp</a></p>
-          <p class="hint">Verified: national ID and title deed checked by Nyumba360 on 4 Jan 2026. This does not guarantee the listing is accurate — always view the property before paying anything.</p>
+          <p id="property-landlord-name" class="card-meta">James Mwangi</p>
+          <p><a id="property-phone" class="btn btn-primary btn-block" href="tel:+254700000000">Call +254 700 000 000</a></p>
+          <p><a id="property-whatsapp" class="btn btn-ghost btn-block" href="https://wa.me/254700000000">Message on WhatsApp</a></p>
+          <p class="hint">Verified: national ID and title deed checked by KejaSearch on 4 Jan 2026. This does not guarantee the listing is accurate — always view the property before paying anything.</p>
         </div>
 
         <div class="notice-box" style="margin-top:1.5rem;">
           <strong>Stay safe when renting</strong>
-          <p style="margin:.5em 0 0;">Never send a deposit before viewing the property in person or via a video call with the landlord. Nyumba360 does not process rent payments and cannot reverse a payment made directly to a landlord.</p>
+          <p style="margin:.5em 0 0;">Never send a deposit before viewing the property in person or via a video call with the landlord. KejaSearch does not process rent payments and cannot reverse a payment made directly to a landlord.</p>
         </div>
       </aside>
+    </div>
     </div>
 
     <section class="section related-listings" aria-labelledby="related-listings-title">
@@ -128,7 +125,7 @@
 <footer class="site-footer">
   <div class="wrap">
     <div class="footer-bottom" style="border-top:none; margin-top:0;">
-      <span>© 2026 Nyumba360 Ltd.</span>
+      <span>© 2026 KejaSearch Ltd.</span>
       <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="cookies.html">Cookies</a> · <a href="refund.html">Refunds</a></span>
     </div>
   </div>

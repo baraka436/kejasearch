@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Landlord dashboard — Nyumba360</title>
+<title>Landlord dashboard — KejaSearch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -15,7 +15,7 @@
   <nav class="nav" aria-label="Main">
     <a class="brand" href="index.html">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11L12 3l9 8" stroke="#C99A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="#F1E9D8" stroke-width="2" stroke-linejoin="round"/></svg>
-      Nyumba360
+      KejaSearch
     </a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
@@ -60,11 +60,11 @@
               <p class="card-meta">Active listings</p>
             </div>
             <div class="stat-card">
-              <p class="stat-num">12</p>
+              <p class="stat-num" id="enquiries-count">0</p>
               <p class="card-meta">Enquiries this month</p>
             </div>
             <div class="stat-card">
-              <p class="stat-num">4.6</p>
+              <p class="stat-num" id="rating-count">0</p>
               <p class="card-meta">Average rating</p>
             </div>
           </div>
@@ -81,11 +81,21 @@
               <div class="field"><label for="property-title">Property name</label><input id="property-title" name="title" type="text" placeholder="e.g. 2-bed apartment, Kilimani" required></div>
               <div class="field"><label for="property-type">Type</label><select id="property-type" name="type"><option>House</option><option>Office</option></select></div>
               <div class="field"><label for="property-price">Monthly price (KES)</label><input id="property-price" name="price" type="number" min="0" required></div>
+              <div class="field"><label for="property-rooms">Number of rooms</label><input id="property-rooms" name="rooms" type="number" min="0" required></div>
+              <div class="field"><label for="property-bathrooms">Number of bathrooms</label><input id="property-bathrooms" name="bathrooms" type="number" min="0" required></div>
+              <div class="field"><label for="property-phone">Public phone number</label><input id="property-phone" name="phone" type="tel" placeholder="e.g. +254 700 000 000" required></div>
+              <div class="field"><label for="property-kitchen">Kitchen details</label><input id="property-kitchen" name="kitchen" type="text" placeholder="e.g. Fitted kitchen" required></div>
+              <div class="field"><label for="property-power">Power details</label><input id="property-power" name="power" type="text" placeholder="e.g. Mains and generator backup" required></div>
+              <div class="field"><label for="property-water">Water details</label><input id="property-water" name="water" type="text" placeholder="e.g. Mains and borehole backup" required></div>
+              <div class="field"><label for="property-parking">Parking details</label><input id="property-parking" name="parking" type="text" placeholder="e.g. 1 allocated space" required></div>
+              <div class="field"><label for="property-description">Description</label><textarea id="property-description" name="description" placeholder="Describe the property clearly for prospective tenants" required></textarea></div>
+              <div class="field"><label for="property-image">Property picture</label><input id="property-image" name="image" type="file" accept="image/*" required><p class="hint">Choose a clear picture of the property. It will appear on the public listing card.</p></div>
+              <div class="field"><label for="property-video">Whole-house video</label><input id="property-video" name="video" type="file" accept="video/*" required><p class="hint">Upload a video walkthrough of the whole house. It will be embedded on the approved property page as the 360° viewing experience.</p></div>
               <div class="field"><button class="btn btn-primary" type="submit">Add property</button></div>
             </div>
           </form>
           <table>
-            <caption class="hint" style="text-align:left; margin-bottom:.5rem;">Your properties currently listed on Nyumba360</caption>
+            <caption class="hint" style="text-align:left; margin-bottom:.5rem;">Your properties currently listed on KejaSearch</caption>
             <thead>
               <tr><th scope="col">Property</th><th scope="col">Status</th><th scope="col">Price</th><th scope="col">Enquiries</th><th scope="col">Actions</th></tr>
             </thead>
@@ -99,21 +109,13 @@
             <thead>
               <tr><th scope="col">Tenant</th><th scope="col">Property</th><th scope="col">Message</th><th scope="col">Received</th></tr>
             </thead>
-            <tbody>
-              <tr><td>Amina H.</td><td>2-bed apartment, Kilimani</td><td>Is parking included?</td><td>2 days ago</td></tr>
-              <tr><td>Peter K.</td><td>1-bed flat, Kasarani</td><td>Can I view this Saturday?</td><td>4 days ago</td></tr>
-            </tbody>
+            <tbody id="landlord-enquiries"><tr><td colspan="4">No enquiries yet.</td></tr></tbody>
           </table>
         </section>
 
         <section id="reviews" style="margin-top:2.5rem;">
           <h2>Reviews on your properties</h2>
-          <div class="review">
-            <p class="stars" aria-label="5 out of 5 stars">★★★★★</p>
-            <p style="margin:.3em 0;"><strong>Faith W.</strong> on 2-bed apartment, Kilimani</p>
-            <p>Quiet compound and the caretaker responds fast when something needs fixing.</p>
-            <button class="btn btn-ghost" type="button" style="padding:.3em .9em; font-size:.85rem;">Report this review</button>
-          </div>
+          <div id="landlord-reviews"><p class="hint">No reviews yet.</p></div>
         </section>
 
         <section id="verification" style="margin-top:2.5rem;">
@@ -131,7 +133,7 @@
           <h2>Account & data</h2>
           <p>Under Kenya's Data Protection Act, 2019 you can request a copy of your data, ask us to correct it, or ask us to delete your account.</p>
           <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
-            <button class="btn btn-ghost" type="button">Download my data</button>
+            <button class="btn btn-ghost" id="download-data-button" type="button">Download my data</button>
             <button class="btn btn-ghost" id="delete-account-button" type="button" style="border-color:var(--danger); color:var(--danger);">Delete my account</button>
           <p id="deletion-request-status" class="form-status hint" role="status" aria-live="polite"></p>
           </div>
@@ -144,7 +146,7 @@
 <footer class="site-footer">
   <div class="wrap">
     <div class="footer-bottom" style="border-top:none; margin-top:0;">
-      <span>© 2026 Nyumba360 Ltd.</span>
+      <span>© 2026 KejaSearch Ltd.</span>
       <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="cookies.html">Cookies</a></span>
     </div>
   </div>
