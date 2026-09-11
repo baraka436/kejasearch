@@ -3,36 +3,8 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const STORAGE = 'nyumba360-data';
   const SESSION = 'nyumba360-session';
-  const ADMIN = { username: 'admin', password: 'adminnyumba360@dashboard' };
   const ADMIN_EMAIL = 'barakakelly0209@gmail.com';
-  const seed = {
-    users: [
-      { id: 'landlord-james', username: 'james', name: 'James Mwangi', email: 'james@example.com', phone: '+254 700 000 000', password: 'password123', role: 'landlord', verified: true },
-      { id: 'tenant-faith', username: 'faith', name: 'Faith W.', email: 'faith@example.com', password: 'password123', role: 'tenant', verified: false }
-    ],
-    properties: [
-      { id: 'property-kilimani', ownerId: 'landlord-james', title: '2-bed apartment, Kilimani', type: 'House', price: 65000, status: 'Verified', enquiries: 7 },
-      { id: 'property-kasarani', ownerId: 'landlord-james', title: '1-bed flat, Kasarani', type: 'House', price: 28000, status: 'Verified', enquiries: 4 },
-      { id: 'property-ruaka', ownerId: 'landlord-james', title: 'Bedsitter, Ruaka', type: 'House', price: 18000, status: 'Pending verification', enquiries: 1 }
-    ]
-  };
-
-  function readData() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE));
-      if (stored && Array.isArray(stored.users) && Array.isArray(stored.properties)) {
-        stored.deletionRequests = Array.isArray(stored.deletionRequests) ? stored.deletionRequests : [];
-        return stored;
-      }
-    } catch (error) { /* Use seed data if storage is unavailable or corrupt. */ }
-    const data = JSON.parse(JSON.stringify(seed));
-    data.deletionRequests = [];
-    return data;
-  }
-
-  function writeData(data) { localStorage.setItem(STORAGE, JSON.stringify(data)); }
   function getSession() { try { return JSON.parse(sessionStorage.getItem(SESSION)); } catch (error) { return null; } }
   function setSession(session) { sessionStorage.setItem(SESSION, JSON.stringify(session)); }
 
@@ -55,26 +27,92 @@
     }));
   }
 
+  function setupContactForm() {
+    const form = $('form[action*="formspree.io"]');
+    if (!form) return;
+    const button = $('button[type="submit"]', form);
+    const status = $('.form-status', form);
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+      const originalLabel = button.textContent;
+      button.disabled = true; button.textContent = 'Sending...';
+      const payload = new FormData(form); payload.set('_replyto', payload.get('email'));
+      try {
+        const response = await fetch(form.action, { method: form.method || 'POST', body: payload, headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('Formspree could not accept the message. Please try again.');
+        form.reset(); if (status) status.textContent = form.dataset.successMessage || 'Thanks — your message has been sent.';
+      } catch (error) {
+        if (status) status.textContent = error.message;
+      } finally {
+        button.disabled = false; button.textContent = originalLabel;
+      }
+    });
+  }
+
   function setupLogin() {
     const loginForm = $('#login-form');
     const signupForm = $('#signup-form');
-    loginForm?.addEventListener('submit', (event) => {
+    const supabase = window.kejaSupabase;
+    if (!supabase || (!loginForm && !signupForm)) return;
+
+    const setStatus = (form, message) => { const status = $('.form-status', form); if (status) status.textContent = message; };
+    const redirectForRole = (role) => { window.location.href = role === 'admin' ? 'admin.html' : role === 'landlord' ? 'dashboard.html' : 'index.html'; };
+    const loadProfileAndRedirect = async (user) => {
+      const { data: profile } = await supabase.from('profiles').select('role, username').eq('id', user.id).single();
+      const isAdmin = user.email?.toLowerCase() === ADMIN_EMAIL;
+      if (profile || isAdmin) {
+        const role = isAdmin ? 'admin' : profile.role;
+        setSession({ role, userId: user.id, username: profile?.username || user.email });
+        redirectForRole(role);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && window.location.pathname.endsWith('/login.html')) loadProfileAndRedirect(data.session.user);
+    });
+
+    loginForm?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const values = Object.fromEntries(new FormData(loginForm));
-      const identity = values.identity.trim().toLowerCase();
-      if (identity === ADMIN.username && values.password === ADMIN.password) { setSession({ role: 'admin', username: ADMIN.username }); window.location.href = 'admin.html'; return; }
-      const account = readData().users.find((user) => (user.username.toLowerCase() === identity || user.email.toLowerCase() === identity) && user.password === values.password);
-      if (!account) { $('.form-status', loginForm).textContent = 'Invalid username/email or password.'; return; }
-      setSession({ role: account.role, userId: account.id, username: account.username }); window.location.href = account.role === 'landlord' ? 'dashboard.html' : 'index.html';
+      const { data, error } = await supabase.auth.signInWithPassword({ email: values.identity.trim(), password: values.password });
+      if (error) {
+        if (error.code === 'email_not_confirmed') {
+          const { error: resendError } = await supabase.auth.resend({ type: 'signup', email: values.identity.trim(), options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` } });
+          setStatus(loginForm, resendError ? `Your email is not confirmed, and the confirmation email could not be sent: ${resendError.message}` : 'Confirm your email first. A new confirmation link has been sent.');
+        } else setStatus(loginForm, error.message);
+        return;
+      }
+      const { data: profile } = await supabase.from('profiles').select('role, username').eq('id', data.user.id).single();
+      const role = data.user.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : profile?.role || 'tenant';
+      setSession({ role, userId: data.user.id, username: profile?.username || data.user.email });
+      redirectForRole(role);
     });
-    signupForm?.addEventListener('submit', (event) => {
+    signupForm?.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!signupForm.checkValidity()) { signupForm.reportValidity(); return; }
       const values = Object.fromEntries(new FormData(signupForm));
-      const data = readData(); const username = values.username.trim().toLowerCase();
-      if (data.users.some((user) => user.username.toLowerCase() === username || user.email.toLowerCase() === values.email.toLowerCase())) { $('.form-status', signupForm).textContent = 'That username or email is already registered.'; return; }
-      const account = { id: `landlord-${Date.now()}`, username, name: values.name.trim(), email: values.email.trim(), phone: values.phone.trim(), password: values.password, role: values.role, verified: false, reviews: 0, enquiries: 0, rating: 0 };
-      data.users.push(account); writeData(data); setSession({ role: account.role, userId: account.id, username: account.username }); window.location.href = account.role === 'landlord' ? 'dashboard.html' : 'index.html';
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email.trim(),
+        password: values.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
+          data: { username: values.username.trim().toLowerCase(), full_name: values.name.trim(), phone: values.phone.trim(), role: values.role, marketing_consent: Boolean(values.consentMarketing) }
+        }
+      });
+      if (error) {
+        const errorMessage = String(error.message || '').toLowerCase();
+        const message = error.code === 'over_email_send_rate_limit'
+          ? 'Email sending is temporarily rate-limited. Check your SMTP provider settings or try again later.'
+          : errorMessage.includes('confirmation email')
+            ? 'The account request reached Supabase, but the confirmation email could not be sent. Check Resend SMTP host, port, username, password, and verified sender settings in Supabase.'
+            : error.message;
+        setStatus(signupForm, message);
+        return;
+      }
+      if (!data.session) { setStatus(signupForm, 'Account created. Check your email and click the confirmation link before logging in.'); return; }
+      const role = data.user.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : values.role;
+      setSession({ role, userId: data.user.id, username: values.username.trim().toLowerCase() }); redirectForRole(role);
     });
   }
 
@@ -84,77 +122,104 @@
     return session;
   }
 
-  function setupDashboard() {
+  async function setupDashboard() {
     if (!$('[data-landlord-dashboard]')) return;
     const session = requireRole('landlord'); if (!session) return;
-    const data = readData(); const landlord = data.users.find((user) => user.id === session.userId);
-    if (!landlord) { sessionStorage.removeItem(SESSION); window.location.href = 'login.html'; return; }
+    const supabase = window.kejaSupabase;
+    const { data: authData } = await supabase.auth.getUser();
+    const { data: landlord, error: profileError } = await supabase.from('profiles').select('id, username, full_name, phone, role, phone_verified').eq('id', session.userId).single();
+    if (profileError || !authData.user || landlord?.role !== 'landlord') { sessionStorage.removeItem(SESSION); window.location.href = 'login.html'; return; }
     const tableBody = $('#landlord-properties'); const form = $('#property-form');
-    $('#landlord-name').textContent = landlord.name; $('#verification-status').textContent = landlord.verified ? 'Verified landlord' : 'Pending verification';
-    const existingDeletionRequest = data.deletionRequests.find((request) => request.userId === landlord.id && request.status === 'Pending');
-    if (existingDeletionRequest && $('#deletion-request-status')) $('#deletion-request-status').textContent = 'Your account will be deleted in 24hrs ,ensure you have removed all properties listed';
-    function render() {
-      const owned = data.properties.filter((property) => property.ownerId === landlord.id); const activeListings = owned.filter((property) => property.status === 'Verified').length; const enquiries = owned.reduce((total, property) => total + Number(property.enquiries || 0), 0); const ratings = owned.flatMap((property) => Array.isArray(property.reviews) ? property.reviews : []); const rating = ratings.length ? (ratings.reduce((total, review) => total + Number(review.rating || 0), 0) / ratings.length).toFixed(1) : '0'; $('#listing-count').textContent = activeListings; $('#enquiries-count').textContent = enquiries; $('#rating-count').textContent = rating;
-      $('#landlord-reviews').innerHTML = ratings.length ? ratings.map((review) => `<div class="review"><p class="stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</p><p style="margin:.3em 0;"><strong>${escapeHtml(review.reviewerName || 'Tenant')}</strong></p><p>${escapeHtml(review.reviewText)}</p></div>`).join('') : '<p class="hint">No reviews yet.</p>';
-      tableBody.innerHTML = owned.length ? owned.map((property) => `<tr><td>${escapeHtml(property.title)}</td><td><span class="badge${property.status === 'Verified' ? '' : ' badge-outline'}">${escapeHtml(property.status)}</span></td><td>KES ${property.price.toLocaleString()}</td><td>${property.enquiries}</td><td><button class="btn btn-danger-outline js-remove-property" type="button" data-id="${property.id}">Remove</button></td></tr>`).join('') : '<tr><td colspan="5">No properties yet. Add your first listing above.</td></tr>';
-      $$('.js-remove-property', tableBody).forEach((button) => button.addEventListener('click', () => { data.properties = data.properties.filter((property) => property.id !== button.dataset.id); writeData(data); render(); }));
+    $('#landlord-name').textContent = landlord.full_name; $('#verification-status').textContent = landlord.phone_verified ? 'Verified landlord' : 'Pending verification';
+    let properties = [];
+    async function loadProperties() {
+      const { data, error } = await supabase.from('properties').select('*').eq('owner_id', landlord.id).order('created_at', { ascending: false });
+      if (error) throw error;
+      properties = data || [];
+    }
+    async function render() {
+      await loadProperties();
+      const activeListings = properties.filter((property) => property.status === 'Verified').length;
+      $('#listing-count').textContent = activeListings; $('#enquiries-count').textContent = '0'; $('#rating-count').textContent = '0';
+      $('#landlord-reviews').innerHTML = '<p class="hint">Reviews are stored in Supabase and will appear here after moderation.</p>';
+      tableBody.innerHTML = properties.length ? properties.map((property) => `<tr><td>${escapeHtml(property.title)}</td><td><span class="badge${property.status === 'Verified' ? '' : ' badge-outline'}">${escapeHtml(property.status)}</span></td><td>KES ${property.price.toLocaleString()}</td><td>0</td><td><button class="btn btn-danger-outline js-remove-property" type="button" data-id="${property.id}">Remove</button></td></tr>`).join('') : '<tr><td colspan="5">No properties yet. Add your first listing above.</td></tr>';
+      $$('.js-remove-property', tableBody).forEach((button) => button.addEventListener('click', async () => {
+        const { error } = await supabase.from('properties').delete().eq('id', button.dataset.id).eq('owner_id', landlord.id);
+        if (error) { showToast(error.message); return; }
+        await render();
+      }));
     }
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
       const values = Object.fromEntries(new FormData(form));
       try {
-        const image = await readFile($('#property-image').files[0], 'property picture');
-        const video = await readFile($('#property-video').files[0], 'whole-house video');
-        data.properties.push({ id: `property-${Date.now()}`, ownerId: landlord.id, title: values.title.trim(), type: values.type, price: Number(values.price), rooms: Number(values.rooms), bathrooms: Number(values.bathrooms), phone: values.phone.trim(), kitchen: values.kitchen.trim(), power: values.power.trim(), water: values.water.trim(), parking: values.parking.trim(), description: values.description.trim(), image, video, status: 'Pending verification', enquiries: 0, reviews: [] });
-        writeData(data); form.reset(); render(); showToast('Property added and queued for admin approval.');
+        const imageFile = $('#property-image').files[0]; const videoFile = $('#property-video').files[0]; const timestamp = Date.now();
+        const imagePath = `${landlord.id}/${timestamp}-${imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '-')}`;
+        const { error: imageError } = await supabase.storage.from('property-images').upload(imagePath, imageFile, { upsert: false, contentType: imageFile.type });
+        if (imageError) throw imageError;
+        const videoPath = `${landlord.id}/${timestamp}-${videoFile.name.replace(/[^a-zA-Z0-9._-]/g, '-')}`;
+        const { error: videoError } = await supabase.storage.from('property-videos').upload(videoPath, videoFile, { upsert: false, contentType: videoFile.type });
+        if (videoError) throw videoError;
+        const { data: imageData } = supabase.storage.from('property-images').getPublicUrl(imagePath); const { data: videoData } = supabase.storage.from('property-videos').getPublicUrl(videoPath);
+        const { error } = await supabase.from('properties').insert({ owner_id: landlord.id, title: values.title.trim(), type: values.type, price: Number(values.price), rooms: Number(values.rooms), bathrooms: Number(values.bathrooms), phone: values.phone.trim(), kitchen: values.kitchen.trim(), power: values.power.trim(), water: values.water.trim(), parking: values.parking.trim(), description: values.description.trim(), image_url: imageData.publicUrl, video_url: videoData.publicUrl });
+        if (error) throw error;
+        form.reset(); await render(); showToast('Property added and queued for admin approval.');
       } catch (error) { showToast(error.message); }
     });
     $('#download-data-button')?.addEventListener('click', () => {
-      const owned = data.properties.filter((property) => property.ownerId === landlord.id);
-      const rows = owned.length ? owned.map((property) => `<tr><td>${escapeHtml(property.title)}</td><td>${escapeHtml(property.type)}</td><td>KES ${property.price.toLocaleString()}</td><td>${escapeHtml(property.status)}</td><td>${property.enquiries}</td></tr>`).join('') : '<tr><td colspan="5">No properties listed.</td></tr>';
-      const documentHtml = `<!doctype html><html><head><meta charset="utf-8"><title>KejaSearch landlord data - ${escapeHtml(landlord.name)}</title><style>body{font-family:Arial,sans-serif;color:#23201b;margin:40px}h1,h2{color:#1f3b2c}table{border-collapse:collapse;width:100%;margin-top:16px}th,td{border:1px solid #999;padding:8px;text-align:left}th{background:#e5d9bf}@media print{button{display:none}}</style></head><body><h1>KejaSearch landlord dashboard</h1><p><strong>Landlord:</strong> ${escapeHtml(landlord.name)}</p><p><strong>Email:</strong> ${escapeHtml(landlord.email)}</p><p><strong>Username:</strong> ${escapeHtml(landlord.username)}</p><h2>Dashboard summary</h2><p><strong>Listings:</strong> ${owned.length}</p><h2>My properties</h2><table><thead><tr><th>Property</th><th>Type</th><th>Monthly price</th><th>Status</th><th>Enquiries</th></tr></thead><tbody>${rows}</tbody></table><p>Generated ${escapeHtml(new Date().toLocaleString())}</p><button type="button" onclick="window.print()">Print this dashboard</button></body></html>`;
-      const blob = new Blob([documentHtml], { type: 'application/msword' });
-      const url = URL.createObjectURL(blob); const link = document.createElement('a');
-      link.href = url; link.download = `nyumba360-landlord-dashboard-${landlord.username}.doc`; document.body.append(link); link.click(); link.remove(); URL.revokeObjectURL(url);
-      showToast('Your dashboard data has been downloaded as a Word document.');
+      const rows = properties.length ? properties.map((property) => `<tr><td>${escapeHtml(property.title)}</td><td>${escapeHtml(property.type)}</td><td>KES ${property.price.toLocaleString()}</td><td>${escapeHtml(property.status)}</td></tr>`).join('') : '<tr><td colspan="4">No properties listed.</td></tr>';
+      const documentHtml = `<!doctype html><html><head><meta charset="utf-8"><title>KejaSearch landlord data - ${escapeHtml(landlord.full_name)}</title><style>body{font-family:Arial,sans-serif;color:#23201b;margin:40px}table{border-collapse:collapse;width:100%;margin-top:16px}th,td{border:1px solid #999;padding:8px;text-align:left}th{background:#e5d9bf}</style></head><body><h1>KejaSearch landlord dashboard</h1><p><strong>Landlord:</strong> ${escapeHtml(landlord.full_name)}</p><p><strong>Email:</strong> ${escapeHtml(authData.user.email)}</p><p><strong>Username:</strong> ${escapeHtml(landlord.username)}</p><table><thead><tr><th>Property</th><th>Type</th><th>Monthly price</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+      const url = URL.createObjectURL(new Blob([documentHtml], { type: 'application/msword' })); const link = document.createElement('a'); link.href = url; link.download = `keja-search-${landlord.username}.doc`; document.body.append(link); link.click(); link.remove(); URL.revokeObjectURL(url);
     });
-    $('#delete-account-button')?.addEventListener('click', () => {
-      const existing = data.deletionRequests.find((request) => request.userId === landlord.id && request.status === 'Pending');
-      if (!existing) {
-        data.deletionRequests.push({ id: `deletion-${Date.now()}`, userId: landlord.id, landlordName: landlord.name, landlordEmail: landlord.email, adminEmail: ADMIN_EMAIL, status: 'Pending', requestedAt: new Date().toISOString() });
-        writeData(data);
-      }
-      const message = 'Your account will be deleted in 24hrs ,ensure you have removed all properties listed';
-      $('#deletion-request-status').textContent = message;
-      showToast(message);
+    $('#delete-account-button')?.addEventListener('click', async () => {
+      const { error } = await supabase.from('deletion_requests').insert({ user_id: landlord.id });
+      const message = error ? error.message : 'Your account deletion request has been submitted for review.';
+      $('#deletion-request-status').textContent = message; showToast(message);
     });
-    $('#logout-button')?.addEventListener('click', () => { sessionStorage.removeItem(SESSION); window.location.href = 'index.html'; }); render();
+    $('#logout-button')?.addEventListener('click', async () => { await supabase.auth.signOut(); sessionStorage.removeItem(SESSION); window.location.href = 'index.html'; });
+    try { await render(); } catch (error) { showToast(error.message); }
   }
 
-  function setupAdmin() {
+  async function setupAdmin() {
     if (!$('[data-admin-dashboard]')) return;
     if (!requireRole('admin')) return;
-    const data = readData(); const usersBody = $('#admin-users'); const propertiesBody = $('#admin-properties'); const requestsBody = $('#admin-deletion-requests');
-    function render() {
-      const landlords = data.users.filter((user) => user.role === 'landlord'); $('#admin-user-count').textContent = data.users.length; $('#admin-landlord-count').textContent = landlords.length; $('#admin-property-count').textContent = data.properties.length;
-      usersBody.innerHTML = data.users.map((user) => { const verification = user.role === 'landlord' ? `<button class="btn btn-ghost js-verify" type="button" data-id="${user.id}">${user.verified ? 'Verified' : 'Verify landlord'}</button>` : '—'; const suspension = user.role === 'landlord' ? `<button class="btn btn-ghost js-suspend" type="button" data-id="${user.id}">${user.suspended ? 'Reinstate landlord' : 'Suspend landlord'}</button>` : ''; return `<tr><td>${escapeHtml(user.name)}</td><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.role)}</td><td>${verification}</td><td>${suspension}<button class="btn btn-danger-outline js-remove-user" type="button" data-id="${user.id}">Remove user</button></td></tr>`; }).join('');
-      propertiesBody.innerHTML = data.properties.map((property) => { const owner = data.users.find((user) => user.id === property.ownerId); const approval = property.status === 'Verified' ? 'Approved' : `<button class="btn btn-ghost js-approve-property" type="button" data-id="${property.id}">Approve listing</button>`; return `<tr><td>${escapeHtml(property.title)}</td><td>${escapeHtml(owner?.name || 'Unknown')}</td><td>${escapeHtml(property.status)}</td><td>KES ${Math.max(500, property.enquiries * 100).toLocaleString()}</td><td>${approval}<button class="btn btn-danger-outline js-remove-property" type="button" data-id="${property.id}">Remove listing</button></td></tr>`; }).join('');
-      if (requestsBody) requestsBody.innerHTML = data.deletionRequests.length ? data.deletionRequests.map((request) => `<tr><td>${escapeHtml(request.landlordName)}</td><td>${escapeHtml(request.landlordEmail)}</td><td>${escapeHtml(request.adminEmail)}</td><td>${escapeHtml(new Date(request.requestedAt).toLocaleString())}</td><td>${request.status === 'Pending' ? `<button class="btn btn-danger-outline js-approve-deletion" type="button" data-id="${request.id}">Approve deletion</button>` : escapeHtml(request.status)}</td></tr>`).join('') : '<tr><td colspan="5">No account deletion requests.</td></tr>';
-      $$('.js-verify', usersBody).forEach((button) => button.addEventListener('click', () => { const user = data.users.find((item) => item.id === button.dataset.id); user.verified = true; data.properties.filter((property) => property.ownerId === user.id).forEach((property) => { if (property.status === 'Pending verification') property.status = 'Verified'; }); writeData(data); render(); }));
-      $$('.js-suspend', usersBody).forEach((button) => button.addEventListener('click', () => { const user = data.users.find((item) => item.id === button.dataset.id); if (!user) return; user.suspended = !user.suspended; writeData(data); render(); }));
-      $$('.js-remove-user', usersBody).forEach((button) => button.addEventListener('click', () => { const userId = button.dataset.id; data.users = data.users.filter((user) => user.id !== userId); data.properties = data.properties.filter((property) => property.ownerId !== userId); writeData(data); render(); }));
-      $$('.js-approve-property', propertiesBody).forEach((button) => button.addEventListener('click', () => { const property = data.properties.find((item) => item.id === button.dataset.id); property.status = 'Verified'; writeData(data); render(); }));
-      $$('.js-remove-property', propertiesBody).forEach((button) => button.addEventListener('click', () => { data.properties = data.properties.filter((property) => property.id !== button.dataset.id); writeData(data); render(); }));
-      $$('.js-approve-deletion', requestsBody || document).forEach((button) => button.addEventListener('click', () => { const request = data.deletionRequests.find((item) => item.id === button.dataset.id); if (!request) return; data.users = data.users.filter((user) => user.id !== request.userId); data.properties = data.properties.filter((property) => property.ownerId !== request.userId); request.status = 'Approved'; writeData(data); render(); }));
+    const supabase = window.kejaSupabase; const usersBody = $('#admin-users'); const propertiesBody = $('#admin-properties'); const requestsBody = $('#admin-deletion-requests');
+    async function render() {
+      const [{ data: users, error: usersError }, { data: properties, error: propertiesError }, { data: requests, error: requestsError }] = await Promise.all([
+        supabase.from('profiles').select('id, username, full_name, role, phone_verified, email_confirmed').eq('email_confirmed', true).order('created_at', { ascending: false }),
+        supabase.from('properties').select('*').order('created_at', { ascending: false }),
+        supabase.from('deletion_requests').select('id, user_id, status, requested_at, profiles(username, full_name)').order('requested_at', { ascending: false })
+      ]);
+      if (usersError || propertiesError || requestsError) throw usersError || propertiesError || requestsError;
+      const landlords = users.filter((user) => user.role === 'landlord'); $('#admin-user-count').textContent = users.length; $('#admin-landlord-count').textContent = landlords.length; $('#admin-property-count').textContent = properties.length;
+      usersBody.innerHTML = users.map((user) => `<tr><td>${escapeHtml(user.full_name)}</td><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.role)}</td><td>${user.role === 'landlord' ? `<button class="btn btn-ghost js-verify" type="button" data-id="${user.id}">${user.phone_verified ? 'Verified' : 'Verify landlord'}</button>` : '—'}</td><td>${user.role === 'landlord' ? `<button class="btn btn-ghost js-suspend" type="button" data-id="${user.id}">Suspend / reinstate</button>` : ''}<button class="btn btn-danger-outline js-remove-user" type="button" data-id="${user.id}">Remove user</button></td></tr>`).join('');
+      propertiesBody.innerHTML = properties.map((property) => { const owner = users.find((user) => user.id === property.owner_id); const approval = property.status === 'Verified' ? 'Approved' : `<button class="btn btn-ghost js-approve-property" type="button" data-id="${property.id}">Approve listing</button>`; return `<tr><td>${escapeHtml(property.title)}</td><td>${escapeHtml(owner?.full_name || 'Unknown')}</td><td>${escapeHtml(property.status)}</td><td>KES 500 minimum</td><td>${approval}<button class="btn btn-danger-outline js-remove-property" type="button" data-id="${property.id}">Remove listing</button></td></tr>`; }).join('');
+      requestsBody.innerHTML = requests.length ? requests.map((request) => `<tr><td>${escapeHtml(request.profiles?.full_name || 'Unknown')}</td><td>${escapeHtml(request.profiles?.username || '')}</td><td>${escapeHtml(request.status)}</td><td>${escapeHtml(new Date(request.requested_at).toLocaleString())}</td><td>${request.status === 'Pending' ? `<button class="btn btn-danger-outline js-approve-deletion" type="button" data-id="${request.id}">Approve deletion</button>` : 'Reviewed'}</td></tr>`).join('') : '<tr><td colspan="5">No account deletion requests.</td></tr>';
+      $$('.js-verify', usersBody).forEach((button) => button.addEventListener('click', async () => { const { error } = await supabase.from('profiles').update({ phone_verified: true }).eq('id', button.dataset.id); if (error) showToast(error.message); else await render(); }));
+      $$('.js-suspend', usersBody).forEach((button) => button.addEventListener('click', async () => { const { data: owned } = await supabase.from('properties').select('id, suspended').eq('owner_id', button.dataset.id); const next = !(owned?.[0]?.suspended); const { error } = await supabase.from('properties').update({ suspended: next }).eq('owner_id', button.dataset.id); if (error) showToast(error.message); else await render(); }));
+      $$('.js-remove-user', usersBody).forEach((button) => button.addEventListener('click', async () => { const { error } = await supabase.from('profiles').delete().eq('id', button.dataset.id); if (error) showToast(error.message); else await render(); }));
+      $$('.js-approve-property', propertiesBody).forEach((button) => button.addEventListener('click', async () => { const { error } = await supabase.from('properties').update({ status: 'Verified' }).eq('id', button.dataset.id); if (error) showToast(error.message); else await render(); }));
+      $$('.js-remove-property', propertiesBody).forEach((button) => button.addEventListener('click', async () => { const { error } = await supabase.from('properties').delete().eq('id', button.dataset.id); if (error) showToast(error.message); else await render(); }));
+      $$('.js-approve-deletion', requestsBody).forEach((button) => button.addEventListener('click', async () => { const { error } = await supabase.from('deletion_requests').update({ status: 'Approved', reviewed_at: new Date().toISOString() }).eq('id', button.dataset.id); if (error) showToast(error.message); else await render(); }));
     }
-    $('#logout-button')?.addEventListener('click', () => { sessionStorage.removeItem(SESSION); window.location.href = 'index.html'; }); render();
+    $('#logout-button')?.addEventListener('click', async () => { await supabase.auth.signOut(); sessionStorage.removeItem(SESSION); window.location.href = 'index.html'; });
+    try { await render(); } catch (error) { showToast(error.message); }
   }
 
-  function setupPublicListings() {
+  async function setupPublicListings() {
     const grids = $$('[data-public-listings]');
     if (!grids.length) return;
-    const data = readData();
+    const supabase = window.kejaSupabase;
+    if (!supabase) return;
+    const { data: rows, error } = await supabase.from('properties').select('*, profiles!properties_owner_id_fkey(id, username, full_name, phone)').eq('status', 'Verified').eq('suspended', false).order('created_at', { ascending: false });
+    if (error) {
+      $$('[data-listing]').forEach((card) => { card.hidden = true; });
+      if ($('#result-count')) $('#result-count').textContent = 'Listings are temporarily unavailable.';
+      showToast('Supabase tables are not ready. Run supabase-schema.sql in the Supabase SQL Editor.');
+      return;
+    }
+    const data = { properties: (rows || []).map((property) => ({ ...property, ownerId: property.owner_id, image: property.image_url, video: property.video_url, enquiries: 0, reviews: [] })), users: (rows || []).map((property) => ({ id: property.profiles?.id, name: property.profiles?.full_name, phone: property.profiles?.phone, suspended: false })) };
     const publicProperties = data.properties.filter((property) => property.status === 'Verified' && !data.users.find((user) => user.id === property.ownerId)?.suspended);
     const normalizeTitle = (title) => title.toLowerCase().replace(/bedroom/g, 'bed').replace(/[^a-z0-9]/g, '');
     grids.forEach((grid) => {
@@ -171,7 +236,7 @@
           if (badge) { badge.textContent = visible ? '✓ Verified landlord' : 'Pending verification'; badge.classList.toggle('badge-outline', !visible); }
           const link = $('.card-actions a', card); if (link && visible) link.href = `property.html?id=${encodeURIComponent(stored.id)}`;
           const media = $('.card-media', card); if (media && stored.image) { media.style.backgroundImage = `url("${stored.image}")`; media.style.backgroundSize = 'cover'; media.style.backgroundPosition = 'center'; }
-        }
+        } else { card.dataset.approved = 'false'; card.hidden = true; }
       });
       publicProperties.filter((property) => !existingTitles.has(normalizeTitle(property.title))).forEach((property) => {
         const area = property.title.includes(',') ? property.title.split(',').pop().trim() : 'Nairobi';
@@ -182,40 +247,47 @@
         grid.append(card);
       });
     });
+    window.dispatchEvent(new Event('listingsLoaded'));
   }
 
-  function setupPropertyDetail() {
+  async function setupPropertyDetail() {
     const page = $('[data-property-detail]'); if (!page) return;
     const id = new URLSearchParams(window.location.search).get('id'); if (!id) return;
-    const property = readData().properties.find((item) => item.id === id);
-    const owner = property ? readData().users.find((user) => user.id === property.ownerId) : null;
-    if (!property || property.status !== 'Verified' || owner?.suspended) { $('#property-detail-content').hidden = true; $('#property-not-available').hidden = false; return; }
-    const rooms = Number(property.rooms ?? 0); const bathrooms = Number(property.bathrooms ?? 0); const phone = property.phone || (owner?.phone && owner.phone !== '+254 700 000 000' ? owner.phone : 'Phone not provided');
+    const supabase = window.kejaSupabase;
+    const { data: property, error } = await supabase.from('properties').select('*, profiles!properties_owner_id_fkey(id, username, full_name, phone), reviews(id, reviewer_name, rating, review_text, created_at)').eq('id', id).eq('status', 'Verified').eq('suspended', false).maybeSingle();
+    const owner = property?.profiles ? { ...property.profiles, name: property.profiles.full_name } : null;
+    if (error || !property || !owner) { $('#property-detail-content').hidden = true; $('#property-not-available').hidden = false; return; }
+    const rooms = Number(property.rooms ?? 0); const bathrooms = Number(property.bathrooms ?? 0); const phone = property.phone || owner.phone || 'Phone not provided';
     document.title = `${property.title} — KejaSearch`;
     $('#property-title').textContent = property.title; $('#property-location').textContent = `${property.area || 'Nairobi'} · ${rooms} room${rooms === 1 ? '' : 's'} · ${bathrooms} bathroom${bathrooms === 1 ? '' : 's'}`; $('#property-price').innerHTML = `KES ${property.price.toLocaleString()} <span style="font-size:.55em; color:#544d3f;">/month</span>`; $('#property-description').textContent = property.description || 'The landlord has not added a description yet.'; $('#property-rooms').textContent = `Rooms: ${rooms}`; $('#property-bathrooms').textContent = `Bathrooms: ${bathrooms}`; $('#property-kitchen').textContent = `Kitchen: ${property.kitchen || 'Details not provided'}`; $('#property-water').textContent = `Water: ${property.water || 'Details not provided'}`; $('#property-power').textContent = `Power: ${property.power || 'Details not provided'}`; $('#property-parking').textContent = `Parking: ${property.parking || 'Details not provided'}`; $('#property-landlord-name').textContent = owner?.name || 'Verified landlord'; $('#property-phone').textContent = phone; $('#property-phone').href = `tel:${phone.replace(/[^+\d]/g, '')}`; $('#property-whatsapp').href = `https://wa.me/${phone.replace(/\D/g, '')}`;
-    const renderReviews = () => { const reviews = Array.isArray(property.reviews) ? property.reviews : []; $('#property-reviews').innerHTML = reviews.length ? reviews.map((review) => `<div class="review"><p class="stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</p><p style="margin:.3em 0;"><strong>${escapeHtml(review.reviewerName || 'Tenant')}</strong></p><p>${escapeHtml(review.reviewText)}</p></div>`).join('') : '<p class="hint">No reviews yet.</p>'; };
+    const renderReviews = () => { const reviews = property.reviews || []; $('#property-reviews').innerHTML = reviews.length ? reviews.map((review) => `<div class="review"><p class="stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</p><p style="margin:.3em 0;"><strong>${escapeHtml(review.reviewer_name || 'Tenant')}</strong></p><p>${escapeHtml(review.review_text)}</p></div>`).join('') : '<p class="hint">No reviews yet.</p>'; };
     renderReviews(); window.addEventListener('reviewAdded', renderReviews);
-    if (property.video) { const video = $('#property-video'); video.src = property.video; video.hidden = false; $('.view360-copy').hidden = true; }
+    if (property.video_url) { const video = $('#property-video'); video.src = property.video_url; video.hidden = false; $('.view360-copy').hidden = true; }
     $('#property-detail-content').hidden = false;
   }
 
-  function setupReviewForm() {
+  async function setupReviewForm() {
     const form = $('#review-form'); if (!form) return;
     const id = new URLSearchParams(window.location.search).get('id'); if (!id) return;
-    form.addEventListener('submit', (event) => {
+    const supabase = window.kejaSupabase;
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
-      const data = readData(); const property = data.properties.find((item) => item.id === id && item.status === 'Verified'); if (!property) return;
-      const values = Object.fromEntries(new FormData(form)); property.reviews = Array.isArray(property.reviews) ? property.reviews : []; property.reviews.push({ rating: Number(values.rating), reviewerName: values.reviewerName.trim(), reviewText: values.reviewText.trim(), submittedAt: new Date().toISOString() }); writeData(data); form.reset(); $('.form-status', form).textContent = 'Thank you. Your rating has been recorded.'; window.dispatchEvent(new Event('reviewAdded'));
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) { $('.form-status', form).textContent = 'Please log in before submitting a review.'; return; }
+      const values = Object.fromEntries(new FormData(form));
+      const { error } = await supabase.from('reviews').insert({ property_id: id, reviewer_id: authData.user.id, reviewer_name: values.reviewerName.trim(), rating: Number(values.rating), review_text: values.reviewText.trim(), confirmed_tenancy: values.confirmTenancy === 'on' });
+      if (error) { $('.form-status', form).textContent = error.message; return; }
+      form.reset(); $('.form-status', form).textContent = 'Thank you. Your rating has been recorded.';
     });
   }
 
   function setupListingFilters() {
-    const form = $('#filter-form'); const cards = $$('[data-listing]'); const resultCount = $('#result-count'); const data = readData(); if (!form || !cards.length) return;
+    const form = $('#filter-form'); const cards = $$('[data-listing]'); const resultCount = $('#result-count'); if (!form || !cards.length) return;
     const area = $('#f-area'); const type = $('#f-type'); const beds = $('#f-beds'); const price = $('#f-price'); const params = new URLSearchParams(window.location.search);
     if (params.has('area')) area.value = params.get('area'); if (params.has('type')) type.value = params.get('type'); if (params.has('maxPrice')) price.value = params.get('maxPrice');
-    function update() { const areaValue = area.value.trim().toLowerCase(); const maxPrice = Number(price.value); const filtering = areaValue || type.value !== 'any' || beds.value !== 'any' || price.value; let visible = 0; cards.forEach((card) => { const matches = card.dataset.approved !== 'false' && (!areaValue || card.dataset.area.toLowerCase().includes(areaValue)) && (type.value === 'any' || card.dataset.type === type.value) && (beds.value === 'any' || (beds.value === '3' ? Number(card.dataset.beds) >= 3 : Number(card.dataset.beds) === Number(beds.value))) && (!price.value || Number(card.dataset.price) <= maxPrice); card.hidden = !matches; if (matches) visible += 1; }); const count = filtering ? visible : data.properties.length; if (resultCount) resultCount.textContent = `${count} ${count === 1 ? 'listing' : 'listings'} found`; }
-    form.addEventListener('input', update); form.addEventListener('change', update); update();
+    function update() { const areaValue = area.value.trim().toLowerCase(); const maxPrice = Number(price.value); let visible = 0; cards.forEach((card) => { const matches = card.dataset.approved !== 'false' && (!areaValue || card.dataset.area.toLowerCase().includes(areaValue)) && (type.value === 'any' || card.dataset.type === type.value) && (beds.value === 'any' || (beds.value === '3' ? Number(card.dataset.beds) >= 3 : Number(card.dataset.beds) === Number(beds.value))) && (!price.value || Number(card.dataset.price) <= maxPrice); card.hidden = !matches; if (matches) visible += 1; }); if (resultCount) resultCount.textContent = `${visible} ${visible === 1 ? 'listing' : 'listings'} found`; }
+    form.addEventListener('input', update); form.addEventListener('change', update); window.addEventListener('listingsLoaded', update); update();
   }
 
   function setupLoginTabs() { const tabs = $$('[role="tab"]'); tabs.forEach((tab) => tab.addEventListener('click', () => tabs.forEach((item) => { const selected = item === tab; item.setAttribute('aria-selected', String(selected)); document.getElementById(item.getAttribute('aria-controls')).hidden = !selected; }))); }
@@ -229,5 +301,5 @@
     }
   }
 
-  setupCookies(); setupLogin(); setupDashboard(); setupAdmin(); setupPublicListings(); setupPropertyDetail(); setupReviewForm(); setupListingFilters(); setupLoginTabs(); setupNavigation();
+  setupCookies(); setupContactForm(); setupLogin(); setupDashboard(); setupAdmin(); setupPublicListings(); setupPropertyDetail(); setupReviewForm(); setupListingFilters(); setupLoginTabs(); setupNavigation();
 })();
