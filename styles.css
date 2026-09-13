@@ -2,16 +2,16 @@
   KejaSearch — design tokens
    =================================================================== */
 :root{
-  --forest:#1F3B2C;
-  --forest-dark:#142720;
-  --sand:#F1E9D8;
-  --sand-deep:#E5D9BF;
-  --clay:#9C5323;
-  --clay-dark:#7E4119;
-  --gold:#C99A3C;
-  --charcoal:#23201B;
+  --forest:#2E1A47;
+  --forest-dark:#1B0F2E;
+  --sand:#FBF0F6;
+  --sand-deep:#F3D9EA;
+  --clay:#C81F72;
+  --clay-dark:#96125A;
+  --gold:#F0A8CE;
+  --charcoal:#241825;
   --white:#FFFFFF;
-  --line:#D9CCA8;
+  --line:#E4C7DC;
   --danger:#8C2F2F;
   --font-display:"Fraunces", Georgia, serif;
   --font-body:"Work Sans", -apple-system, Segoe UI, sans-serif;
@@ -137,11 +137,11 @@ select:focus-visible, textarea:focus-visible{
 /* ---------- Forms ---------- */
 .field{margin-bottom:1.1rem;}
 label{display:block; font-weight:600; margin-bottom:.35em; font-size:.95rem;}
-.hint{font-size:.85rem; color:#544d3f; margin-top:.3em;}
+.hint{font-size:.85rem; color:#5B4A63; margin-top:.3em;}
 input[type=text], input[type=email], input[type=tel], input[type=password],
 input[type=number], input[type=search], select, textarea{
   width:100%; font-family:var(--font-body); font-size:1rem;
-  padding:.7em .8em; border:1px solid #8a8265; border-radius:var(--radius-s);
+  padding:.7em .8em; border:1px solid #8B7A94; border-radius:var(--radius-s);
   background:var(--white); color:var(--charcoal);
 }
 textarea{resize:vertical; min-height:7rem;}
@@ -182,7 +182,7 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 .card-media{aspect-ratio:4/3; background:var(--sand-deep);}
 .card-body{padding:1.1rem 1.2rem 1.4rem; display:flex; flex-direction:column; gap:.5rem; flex:1;}
 .card-price{font-family:var(--font-display); font-size:1.3rem; color:var(--clay-dark); font-weight:600;}
-.card-meta{font-size:.9rem; color:#544d3f;}
+.card-meta{font-size:.9rem; color:#5B4A63;}
 .card-actions{margin-top:auto; display:flex; gap:.6rem; padding-top:.8rem;}
 
 .badge{
@@ -206,7 +206,7 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 .view360{
   background:var(--charcoal); border-radius:var(--radius-m); aspect-ratio:16/9;
   display:flex; align-items:center; justify-content:center; color:var(--sand);
-  border:2px dashed #6b6552; text-align:center; padding:2rem;
+  border:2px dashed #6B5A73; text-align:center; padding:2rem;
 }
 .property-video{width:100%; height:100%; object-fit:contain; border-radius:var(--radius-m); background:var(--charcoal);}
 .landlord-card{
@@ -247,7 +247,7 @@ th{background:var(--sand-deep); font-family:var(--font-display); color:var(--for
 .footer-grid a:hover{color:var(--gold);}
 .footer-bottom{
   border-top:1px solid rgba(255,255,255,.15); margin-top:2.5rem; padding-top:1.5rem;
-  font-size:.85rem; color:#c9c0a4; display:flex; justify-content:space-between; flex-wrap:wrap; gap:.75rem;
+  font-size:.85rem; color:#C9B9D1; display:flex; justify-content:space-between; flex-wrap:wrap; gap:.75rem;
 }
 
 /* ---------- Two-column page layouts ----------
@@ -271,9 +271,9 @@ th{background:var(--sand-deep); font-family:var(--font-display); color:var(--for
 /* ---------- Legal pages ---------- */
 .legal{max-width:75ch;}
 .legal h2{margin-top:2rem;}
-.legal .updated{color:#544d3f; font-size:.9rem;}
+.legal .updated{color:#5B4A63; font-size:.9rem;}
 .notice-box{
-  background:#FBF3DD; border:1px solid var(--gold); border-left:5px solid var(--gold);
+  background:#F9E6F1; border:1px solid var(--gold); border-left:5px solid var(--gold);
   padding:1rem 1.25rem; border-radius:var(--radius-s); margin:1.5rem 0;
 }
 
