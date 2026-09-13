@@ -4,7 +4,19 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const SESSION = 'nyumba360-session';
-  const ADMIN_EMAIL = 'barakakelly0209@gmail.com';
+  // The admin address is stored as a one-way SHA-256 hash instead of plain text so
+  // it isn't readable directly in this file's source. This only hides the address —
+  // it grants no access by itself; the real permission check happens server-side in
+  // Supabase via the is_admin() function (see supabase-schema.sql), which is what
+  // actually protects admin-only data no matter what this file contains.
+  const ADMIN_EMAIL_HASH = 'b3bb459089fdcac570a1d450d4d98e0b182cf1bf4deca4cefe2847b49c1a6988';
+  async function isAdminEmail(email) {
+    if (!email) return false;
+    const bytes = new TextEncoder().encode(email.trim().toLowerCase());
+    const digestBuffer = await crypto.subtle.digest('SHA-256', bytes);
+    const hex = [...new Uint8Array(digestBuffer)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    return hex === ADMIN_EMAIL_HASH;
+  }
   function getSession() { try { return JSON.parse(sessionStorage.getItem(SESSION)); } catch (error) { return null; } }
   function setSession(session) { sessionStorage.setItem(SESSION, JSON.stringify(session)); }
 
@@ -60,7 +72,7 @@
     const redirectForRole = (role) => { window.location.href = role === 'admin' ? 'admin.html' : role === 'landlord' ? 'dashboard.html' : 'index.html'; };
     const loadProfileAndRedirect = async (user) => {
       const { data: profile } = await supabase.from('profiles').select('role, username').eq('id', user.id).single();
-      const isAdmin = user.email?.toLowerCase() === ADMIN_EMAIL;
+      const isAdmin = await isAdminEmail(user.email);
       if (profile || isAdmin) {
         const role = isAdmin ? 'admin' : profile.role;
         setSession({ role, userId: user.id, username: profile?.username || user.email });
@@ -84,7 +96,7 @@
         return;
       }
       const { data: profile } = await supabase.from('profiles').select('role, username').eq('id', data.user.id).single();
-      const role = data.user.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : profile?.role || 'tenant';
+      const role = (await isAdminEmail(data.user.email)) ? 'admin' : profile?.role || 'tenant';
       setSession({ role, userId: data.user.id, username: profile?.username || data.user.email });
       redirectForRole(role);
     });
@@ -111,7 +123,7 @@
         return;
       }
       if (!data.session) { setStatus(signupForm, 'Account created. Check your email and click the confirmation link before logging in.'); return; }
-      const role = data.user.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : values.role;
+      const role = (await isAdminEmail(data.user.email)) ? 'admin' : values.role;
       setSession({ role, userId: data.user.id, username: values.username.trim().toLowerCase() }); redirectForRole(role);
     });
   }
@@ -283,10 +295,10 @@
   }
 
   function setupListingFilters() {
-    const form = $('#filter-form'); const cards = $$('[data-listing]'); const resultCount = $('#result-count'); if (!form || !cards.length) return;
+    const form = $('#filter-form'); const resultCount = $('#result-count'); if (!form) return;
     const area = $('#f-area'); const type = $('#f-type'); const beds = $('#f-beds'); const price = $('#f-price'); const params = new URLSearchParams(window.location.search);
     if (params.has('area')) area.value = params.get('area'); if (params.has('type')) type.value = params.get('type'); if (params.has('maxPrice')) price.value = params.get('maxPrice');
-    function update() { const areaValue = area.value.trim().toLowerCase(); const maxPrice = Number(price.value); let visible = 0; cards.forEach((card) => { const matches = card.dataset.approved !== 'false' && (!areaValue || card.dataset.area.toLowerCase().includes(areaValue)) && (type.value === 'any' || card.dataset.type === type.value) && (beds.value === 'any' || (beds.value === '3' ? Number(card.dataset.beds) >= 3 : Number(card.dataset.beds) === Number(beds.value))) && (!price.value || Number(card.dataset.price) <= maxPrice); card.hidden = !matches; if (matches) visible += 1; }); if (resultCount) resultCount.textContent = `${visible} ${visible === 1 ? 'listing' : 'listings'} found`; }
+    function update() { const cards = $$('[data-listing]'); const areaValue = area.value.trim().toLowerCase(); const maxPrice = Number(price.value); let visible = 0; cards.forEach((card) => { const matches = card.dataset.approved !== 'false' && (!areaValue || card.dataset.area.toLowerCase().includes(areaValue)) && (type.value === 'any' || card.dataset.type === type.value) && (beds.value === 'any' || (beds.value === '3' ? Number(card.dataset.beds) >= 3 : Number(card.dataset.beds) === Number(beds.value))) && (!price.value || Number(card.dataset.price) <= maxPrice); card.hidden = !matches; if (matches) visible += 1; }); if (resultCount) resultCount.textContent = `${visible} ${visible === 1 ? 'listing' : 'listings'} found`; }
     form.addEventListener('input', update); form.addEventListener('change', update); window.addEventListener('listingsLoaded', update); update();
   }
 
