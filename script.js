@@ -134,6 +134,41 @@
     return session;
   }
 
+  // Wires up the click-to-place-pin map on the landlord's "Add a property"
+  // form. Returns null if the map container isn't on the page, or if the
+  // Leaflet library (window.L) failed to load — callers must handle that
+  // by skipping the location requirement rather than blocking the form.
+  function setupPropertyMapPicker() {
+    const mapContainer = $('#property-map');
+    if (!mapContainer || typeof L === 'undefined') return null;
+    const latInput = $('#property-latitude');
+    const lngInput = $('#property-longitude');
+    const coordsLabel = $('#property-map-coords');
+    const errorLabel = $('#property-map-error');
+    // Centred on Nairobi by default; landlords elsewhere can pan/zoom to find their plot.
+    const map = L.map(mapContainer).setView([-1.2921, 36.8219], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    let marker = null;
+    map.on('click', (event) => {
+      const { lat, lng } = event.latlng;
+      if (marker) { marker.setLatLng(event.latlng); } else { marker = L.marker(event.latlng).addTo(map); }
+      latInput.value = lat.toFixed(6); lngInput.value = lng.toFixed(6);
+      if (coordsLabel) coordsLabel.textContent = `Selected location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      if (errorLabel) errorLabel.hidden = true;
+    });
+    return {
+      hasLocation: () => Boolean(latInput.value && lngInput.value),
+      reset: () => {
+        if (marker) { map.removeLayer(marker); marker = null; }
+        latInput.value = ''; lngInput.value = '';
+        if (coordsLabel) coordsLabel.textContent = 'No location selected yet.';
+      }
+    };
+  }
+
   async function setupDashboard() {
     if (!$('[data-landlord-dashboard]')) return;
     const session = requireRole('landlord'); if (!session) return;
@@ -142,6 +177,7 @@
     const { data: landlord, error: profileError } = await supabase.from('profiles').select('id, username, full_name, phone, role, phone_verified').eq('id', session.userId).single();
     if (profileError || !authData.user || landlord?.role !== 'landlord') { sessionStorage.removeItem(SESSION); window.location.href = 'login.html'; return; }
     const tableBody = $('#landlord-properties'); const form = $('#property-form');
+    const mapPicker = setupPropertyMapPicker();
     $('#landlord-name').textContent = landlord.full_name; $('#verification-status').textContent = landlord.phone_verified ? 'Verified landlord' : 'Pending verification';
     let properties = [];
     async function loadProperties() {
@@ -164,6 +200,11 @@
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
+      if (mapPicker && !mapPicker.hasLocation()) {
+        $('#property-map-error').hidden = false;
+        $('#property-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       const values = Object.fromEntries(new FormData(form));
       try {
         const imageFile = $('#property-image').files[0]; const videoFile = $('#property-video').files[0]; const timestamp = Date.now();
@@ -174,9 +215,9 @@
         const { error: videoError } = await supabase.storage.from('property-videos').upload(videoPath, videoFile, { upsert: false, contentType: videoFile.type });
         if (videoError) throw videoError;
         const { data: imageData } = supabase.storage.from('property-images').getPublicUrl(imagePath); const { data: videoData } = supabase.storage.from('property-videos').getPublicUrl(videoPath);
-        const { error } = await supabase.from('properties').insert({ owner_id: landlord.id, title: values.title.trim(), type: values.type, price: Number(values.price), rooms: Number(values.rooms), bathrooms: Number(values.bathrooms), phone: values.phone.trim(), kitchen: values.kitchen.trim(), power: values.power.trim(), water: values.water.trim(), parking: values.parking.trim(), description: values.description.trim(), image_url: imageData.publicUrl, video_url: videoData.publicUrl });
+        const { error } = await supabase.from('properties').insert({ owner_id: landlord.id, title: values.title.trim(), type: values.type, price: Number(values.price), rooms: Number(values.rooms), bathrooms: Number(values.bathrooms), phone: values.phone.trim(), kitchen: values.kitchen.trim(), power: values.power.trim(), water: values.water.trim(), parking: values.parking.trim(), description: values.description.trim(), image_url: imageData.publicUrl, video_url: videoData.publicUrl, latitude: values.latitude ? Number(values.latitude) : null, longitude: values.longitude ? Number(values.longitude) : null });
         if (error) throw error;
-        form.reset(); await render(); showToast('Property added and queued for admin approval.');
+        form.reset(); mapPicker?.reset(); await render(); showToast('Property added and queued for admin approval.');
       } catch (error) { showToast(error.message); }
     });
     $('#download-data-button')?.addEventListener('click', () => {
@@ -275,6 +316,18 @@
     const renderReviews = () => { const reviews = property.reviews || []; $('#property-reviews').innerHTML = reviews.length ? reviews.map((review) => `<div class="review"><p class="stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</p><p style="margin:.3em 0;"><strong>${escapeHtml(review.reviewer_name || 'Tenant')}</strong></p><p>${escapeHtml(review.review_text)}</p></div>`).join('') : '<p class="hint">No reviews yet.</p>'; };
     renderReviews(); window.addEventListener('reviewAdded', renderReviews);
     if (property.video_url) { const video = $('#property-video'); video.src = property.video_url; video.hidden = false; $('.view360-copy').hidden = true; }
+    const mapDisplay = $('#property-map-display');
+    if (mapDisplay && typeof L !== 'undefined' && property.latitude != null && property.longitude != null) {
+      const detailMap = L.map(mapDisplay, { scrollWheelZoom: false }).setView([property.latitude, property.longitude], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(detailMap);
+      L.marker([property.latitude, property.longitude]).addTo(detailMap);
+    } else {
+      if (mapDisplay) mapDisplay.hidden = true;
+      const fallback = $('#property-map-fallback'); if (fallback) fallback.hidden = false;
+    }
     $('#property-detail-content').hidden = false;
   }
 

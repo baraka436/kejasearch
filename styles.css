@@ -35,11 +35,12 @@ h1,h2,h3,h4{
   color:var(--forest);
   line-height:1.15;
   margin:0 0 .5em;
+  text-wrap:pretty; /* stops a single word being orphaned on its own last line */
 }
-h1{font-size:clamp(2.1rem,4vw,3.3rem); font-weight:600;}
-h2{font-size:clamp(1.5rem,2.6vw,2.1rem); font-weight:600;}
+h1{font-size:clamp(2.1rem,4vw,3.3rem); font-weight:600; letter-spacing:-0.015em;}
+h2{font-size:clamp(1.5rem,2.6vw,2.1rem); font-weight:600; letter-spacing:-0.01em;}
 h3{font-size:1.25rem; font-weight:600;}
-p{margin:0 0 1em; max-width:66ch;}
+p{margin:0 0 1em; max-width:66ch; text-wrap:pretty;}
 a{color:var(--clay-dark);}
 a:hover{color:var(--clay);}
 img{max-width:100%; display:block;}
@@ -89,14 +90,32 @@ select:focus-visible, textarea:focus-visible{
 .nav-links a[aria-current="page"]{border-bottom:2px solid var(--gold); padding-bottom:2px;}
 .nav-cta{display:flex; gap:.75rem; align-items:center;}
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons ----------
+   Shadows are tinted with color-mix() instead of flat grey, so they
+   read as "this brand's shadow" rather than a generic default. A real
+   :active state (the moment of the click, not just hover) was added —
+   the button visibly compresses, which is what makes a UI feel
+   physically responsive instead of just decorative. */
 .btn{
   display:inline-block; font-family:var(--font-body); font-weight:600;
   font-size:1rem; padding:.75em 1.4em; border-radius:10px;
   border:2px solid transparent; text-decoration:none; cursor:pointer;
-  line-height:1.2; box-shadow:0 0 5px grey; transition:box-shadow .2s ease, transform .2s ease, background-color .2s ease, color .2s ease;
+  line-height:1.2;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--charcoal) 8%, transparent),
+    0 6px 16px color-mix(in srgb, var(--clay) 18%, transparent);
+  transition:box-shadow .2s ease, transform .12s ease, background-color .2s ease, color .2s ease;
 }
-.btn:hover{box-shadow:0 0 5px grey; transform:translate(1px, 1px);}
+.btn:hover{
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--charcoal) 10%, transparent),
+    0 10px 22px color-mix(in srgb, var(--clay) 26%, transparent);
+  transform:translateY(-1px);
+}
+.btn:active{
+  transform:scale(0.98) translateY(0);
+  box-shadow:0 1px 2px color-mix(in srgb, var(--charcoal) 12%, transparent);
+}
 .btn-primary{background:var(--clay); color:var(--white);}
 .btn-primary:hover{background:var(--clay-dark); color:var(--white);}
 .btn-outline{background:transparent; border-color:var(--white); color:var(--white);}
@@ -143,7 +162,9 @@ input[type=number], input[type=search], select, textarea{
   width:100%; font-family:var(--font-body); font-size:1rem;
   padding:.7em .8em; border:1px solid #8B7A94; border-radius:var(--radius-s);
   background:var(--white); color:var(--charcoal);
+  transition:border-color .15s ease, box-shadow .15s ease;
 }
+input:hover, select:hover, textarea:hover{border-color:var(--clay-dark);}
 textarea{resize:vertical; min-height:7rem;}
 fieldset{border:1px solid var(--line); border-radius:var(--radius-m); padding:1rem 1.1rem; margin:0 0 1.1rem;}
 legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:var(--forest);}
@@ -153,6 +174,9 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 .form-card{
   background:var(--white); border:1px solid var(--line); border-radius:var(--radius-m);
   padding:2rem; max-width:520px;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--charcoal) 5%, transparent),
+    0 10px 26px color-mix(in srgb, var(--forest) 8%, transparent);
 }
 .property-form{max-width:none; margin-bottom:1.5rem;}
 .property-form-grid{display:block;}
@@ -160,6 +184,34 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 .btn-danger-outline{background:transparent; border-color:var(--danger); color:var(--danger); padding:.3em .8em; font-size:.85rem;}
 .btn-danger-outline:hover{background:var(--danger); color:var(--white);}
 .error-text{color:var(--danger); font-size:.85rem; margin-top:.3em;}
+
+/* Leaflet needs the container to have a real height *before* it
+   initialises, or the map renders as a collapsed 0px box. */
+.map-field{
+  height:280px; border-radius:var(--radius-m); border:1px solid var(--line);
+  overflow:hidden; background:var(--sand-deep); margin-bottom:.5rem;
+}
+
+/* ---------- Login / signup tabs ----------
+   Previously six inline style properties per button, duplicated
+   across markup and toggled by script.js. Styling now lives here in
+   one place and keys off aria-selected, which script.js already
+   sets/unsets on click — no JS changes required. */
+.auth-tabs{
+  display:flex; gap:.5rem; margin-bottom:1.5rem;
+  border-bottom:1px solid var(--line);
+}
+.auth-tabs .tab-btn{
+  background:none; border:none; cursor:pointer;
+  padding:.8em 1.2em; font-family:var(--font-display);
+  font-size:1.05rem; font-weight:600; color:#5B4A63;
+  border-bottom:3px solid transparent;
+  transition:color .2s ease, border-color .2s ease;
+}
+.auth-tabs .tab-btn:hover{color:var(--forest);}
+.auth-tabs .tab-btn[aria-selected="true"]{
+  color:var(--forest); border-bottom-color:var(--clay);
+}
 
 /* ---------- Cards / listings ---------- */
 .section{padding:3.5rem 0;}
@@ -170,10 +222,29 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 @media (max-width:900px){.grid-3{grid-template-columns:1fr 1fr;}}
 @media (max-width:600px){.grid-3{grid-template-columns:1fr;}}
 
+/* Feature section: asymmetric 2-column instead of 3 equal boxes.
+   Added ON TOP of .grid-3 (which stays exactly as-is for listings
+   grids) — the third card spans full width as a banner, breaking the
+   "three equal columns" pattern without touching any markup the
+   listings JS depends on. */
+.feature-grid{grid-template-columns:1.1fr .9fr;}
+.feature-grid .card:nth-child(3){grid-column:1 / -1;}
+.feature-grid .card:nth-child(3) .card-body{flex-direction:row; align-items:center; gap:1rem;}
+@media (max-width:780px){
+  .feature-grid{grid-template-columns:1fr;}
+  .feature-grid .card:nth-child(3){grid-column:auto;}
+  .feature-grid .card:nth-child(3) .card-body{flex-direction:column; align-items:stretch;}
+}
+
 .card{
   background:var(--white); border:1px solid var(--line); border-radius:10px;
-  box-shadow:0 0 5px grey; overflow:hidden; display:flex; flex-direction:column;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--charcoal) 6%, transparent),
+    0 8px 20px color-mix(in srgb, var(--forest) 10%, transparent);
+  overflow:hidden; display:flex; flex-direction:column;
+  transition:transform .2s ease, box-shadow .2s ease;
 }
+.card:hover{transform:translateY(-3px);}
 .card[hidden]{display:none;}
 .card-tab{
   background:var(--forest); color:var(--sand); font-size:.78rem; font-weight:600;
@@ -181,14 +252,17 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 }
 .card-media{aspect-ratio:4/3; background:var(--sand-deep);}
 .card-body{padding:1.1rem 1.2rem 1.4rem; display:flex; flex-direction:column; gap:.5rem; flex:1;}
-.card-price{font-family:var(--font-display); font-size:1.3rem; color:var(--clay-dark); font-weight:600;}
+.card-price{font-family:var(--font-display); font-size:1.3rem; color:var(--clay-dark); font-weight:600; font-variant-numeric:tabular-nums;}
 .card-meta{font-size:.9rem; color:#5B4A63;}
 .card-actions{margin-top:auto; display:flex; gap:.6rem; padding-top:.8rem;}
 
+/* Badge: a "flag" shape (three rounded corners, one square) instead
+   of a fully-rounded pill — small change, but a pill badge is one of
+   the most reused defaults across AI-generated UIs. */
 .badge{
   display:inline-flex; align-items:center; gap:.35em;
   background:var(--gold); color:var(--charcoal); font-size:.78rem; font-weight:700;
-  padding:.25em .65em; border-radius:999px;
+  padding:.25em .65em; border-radius:3px 3px 3px 0;
 }
 .badge-outline{background:transparent; border:1px solid var(--forest); color:var(--forest);}
 
@@ -200,6 +274,7 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 }
 @media (max-width:820px){.filters{grid-template-columns:1fr 1fr;}}
 @media (max-width:500px){.filters{grid-template-columns:1fr;}}
+#result-count{letter-spacing:.01em;}
 
 /* ---------- Property detail ---------- */
 .property-head{display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:baseline;}
@@ -211,6 +286,9 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 .property-video{width:100%; height:100%; object-fit:contain; border-radius:var(--radius-m); background:var(--charcoal);}
 .landlord-card{
   background:var(--white); border:1px solid var(--line); border-radius:var(--radius-m); padding:1.5rem;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--charcoal) 5%, transparent),
+    0 8px 20px color-mix(in srgb, var(--forest) 8%, transparent);
 }
 .review{border-top:1px solid var(--line); padding:1.1rem 0;}
 .review:first-child{border-top:none;}
@@ -227,8 +305,13 @@ legend{font-family:var(--font-display); font-weight:600; padding:0 .4em; color:v
 .dash-nav a[aria-current="page"]{background:var(--forest); color:var(--white);}
 .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-bottom:2rem;}
 @media (max-width:700px){.stat-row{grid-template-columns:1fr;}}
-.stat-card{background:var(--white); border:1px solid var(--line); border-radius:var(--radius-m); padding:1.25rem;}
-.stat-num{font-family:var(--font-display); font-size:2rem; color:var(--forest); font-weight:600;}
+.stat-card{
+  background:var(--white); border:1px solid var(--line); border-radius:var(--radius-m); padding:1.25rem;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--charcoal) 5%, transparent),
+    0 8px 18px color-mix(in srgb, var(--forest) 8%, transparent);
+}
+.stat-num{font-family:var(--font-display); font-size:2rem; color:var(--forest); font-weight:600; font-variant-numeric:tabular-nums;}
 table{width:100%; min-width:620px; border-collapse:collapse; background:var(--white);}
 .dash-layout > div{min-width:0;}
 .dash-layout table{display:block; min-width:0; overflow-x:auto;}
@@ -251,11 +334,7 @@ th{background:var(--sand-deep); font-family:var(--font-display); color:var(--for
 }
 
 /* ---------- Two-column page layouts ----------
-   Used by contact.html (equal split) and property.html (main + sidebar).
-   Previously these relied on an inline style attribute for the base
-   grid plus a page-level <style> block for the breakpoint — both are
-   centralised here instead so every page pulls all of its layout from
-   this one stylesheet. */
+   Used by contact.html (equal split) and property.html (main + sidebar). */
 .contact-layout{display:grid; grid-template-columns:1fr 1fr; gap:2.5rem;}
 @media (max-width:750px){.contact-layout{grid-template-columns:1fr;}}
 
@@ -323,6 +402,7 @@ th{background:var(--sand-deep); font-family:var(--font-display); color:var(--for
   .card-body{padding:1rem;}
   .card-actions{flex-wrap:wrap;}
   .card-actions .btn{width:100%; text-align:center;}
+  .map-field{height:220px;}
   .footer-grid{grid-template-columns:1fr; gap:1.5rem;}
   .footer-bottom{display:block;}
   .footer-bottom span{display:block; margin-top:.5rem;}
@@ -341,4 +421,3 @@ th{background:var(--sand-deep); font-family:var(--font-display); color:var(--for
   html{scroll-behavior:auto;}
   *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
 }
-

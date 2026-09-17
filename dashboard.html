@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -83,6 +84,15 @@
             <h3>Add a property</h3>
             <div class="property-form-grid">
               <div class="field"><label for="property-title">Property name</label><input id="property-title" name="title" type="text" placeholder="e.g. 2-bed apartment, Kilimani" required></div>
+              <div class="field">
+                <label for="property-map">Exact location</label>
+                <p class="hint" id="property-map-hint">Click on the map to drop a pin at the exact location of this property. Tenants will see this pin on the listing page.</p>
+                <div id="property-map" class="map-field" role="application" aria-label="Map for selecting the property's exact location. Click anywhere on the map to place a pin."></div>
+                <p class="hint" id="property-map-coords" aria-live="polite">No location selected yet.</p>
+                <p class="error-text" id="property-map-error" hidden>Please click the map to set the property's exact location before submitting.</p>
+                <input type="hidden" id="property-latitude" name="latitude">
+                <input type="hidden" id="property-longitude" name="longitude">
+              </div>
               <div class="field"><label for="property-type">Type</label><select id="property-type" name="type"><option>House</option><option>Office</option></select></div>
               <div class="field"><label for="property-price">Monthly price (KES)</label><input id="property-price" name="price" type="number" min="0" required></div>
               <div class="field"><label for="property-rooms">Number of rooms</label><input id="property-rooms" name="rooms" type="number" min="0" required></div>
@@ -156,6 +166,7 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="script.js"></script>

@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -67,6 +68,10 @@
           <li id="property-power">Power: mains + standby generator for common areas</li>
           <li id="property-parking">Parking: 1 allocated bay</li>
         </ul>
+
+        <h2>Location</h2>
+        <div id="property-map-display" class="map-field"></div>
+        <p class="hint" id="property-map-fallback" hidden>The landlord hasn't set an exact map location for this property yet.</p>
 
         <h2>Tenant reviews</h2>
         <p class="hint">Reviews are from tenants who have confirmed a lease at this property. We remove reviews found to be fake, incentivized, or posted by someone with no verified tenancy.</p>
@@ -145,6 +150,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="script.js"></script>
